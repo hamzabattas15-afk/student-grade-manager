@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestion des étudiants</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+    body { background: #0f172a; color: #e2e8f0; padding: 20px; }
+    .container { max-width: 1000px; margin: auto; }
+    h1 { text-align: center; color: #38bdf8; margin-bottom: 20px; }
+    .card {
+      background: #1e293b;
+      padding: 20px;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    }
+    h2 { margin-bottom: 15px; color: #38bdf8; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
+    label { display: block; margin-bottom: 6px; font-weight: bold; }
+    input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #475569;
+      border-radius: 10px;
+      background: #0f172a;
+      color: white;
+      margin-bottom: 12px;
+      outline: none;
+    }
+    input:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 2px rgba(56,189,248,0.2);
+    }
+    button {
+      background: #38bdf8;
+      color: #0f172a;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-right: 10px;
+      margin-top: 10px;
+    }
+    button:hover { background: #0ea5e9; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      overflow: hidden;
+      border-radius: 10px;
+    }
+    th, td {
+      border: 1px solid #334155;
+      padding: 12px;
+      text-align: center;
+    }
+    th { background: #334155; }
+    .success { color: #22c55e; font-weight: bold; }
+    .danger { color: #f87171; font-weight: bold; }
+    .info-box {
+      background: #0f172a;
+      padding: 12px;
+      border-radius: 10px;
+      margin-top: 10px;
+      border: 1px solid #334155;
+    }
+    .small { color: #94a3b8; font-size: 14px; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Gestion des étudiants</h1>
+
+    <div class="card">
+      <h2>Ajouter les étudiants</h2>
+      <div class="grid">
+        <div>
+          <label for="nom">Nom de l'étudiant</label>
+          <input type="text" id="nom" placeholder="Ex: Hamza" />
+        </div>
+        <div>
+          <label for="note1">Note 1</label>
+          <input type="number" id="note1" min="0" max="20" step="0.01" placeholder="Ex: 14" />
+        </div>
+        <div>
+          <label for="note2">Note 2</label>
+          <input type="number" id="note2" min="0" max="20" step="0.01" placeholder="Ex: 12" />
+        </div>
+        <div>
+          <label for="note3">Note 3</label>
+          <input type="number" id="note3" min="0" max="20" step="0.01" placeholder="Ex: 16" />
+        </div>
+      </div>
+      <button type="button" id="addBtn">Ajouter</button>
+      <button type="button" id="clearBtn">Vider</button>
+      <div class="info-box">Tu peux ajouter jusqu'à 100 étudiants.</div>
+      <p class="small">Appuie sur Entrée pour passer au champ suivant. Sur le dernier champ, Entrée ajoute l'étudiant.</p>
+    </div>
+
+    <div class="card">
+      <h2>Résultats</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Note 1</th>
+            <th>Note 2</th>
+            <th>Note 3</th>
+            <th>Moyenne</th>
+            <th>Mention</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Étudiants admis</h2>
+      <div id="admis"></div>
+    </div>
+  </div>
+
+  <script>
+    let etudiants = [];
+
+    const nomInput = document.getElementById('nom');
+    const note1Input = document.getElementById('note1');
+    const note2Input = document.getElementById('note2');
+    const note3Input = document.getElementById('note3');
+    const addBtn = document.getElementById('addBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const tableBody = document.getElementById('tableBody');
+    const admisDiv = document.getElementById('admis');
+
+    function calculMention(moyenne) {
+      if (moyenne >= 16) return 'Très Bien';
+      if (moyenne >= 14) return 'Bien';
+      if (moyenne >= 12) return 'Assez Bien';
+      if (moyenne >= 10) return 'Passable';
+      return 'Ajourné';
+    }
+
+    function ajouterEtudiant() {
+      const nom = nomInput.value.trim();
+      const note1 = parseFloat(note1Input.value);
+      const note2 = parseFloat(note2Input.value);
+      const note3 = parseFloat(note3Input.value);
+
+      if (!nom || Number.isNaN(note1) || Number.isNaN(note2) || Number.isNaN(note3)) {
+        alert('Remplis tous les champs.');
+        return;
+      }
+
+      if (note1 < 0 || note1 > 20 || note2 < 0 || note2 > 20 || note3 < 0 || note3 > 20) {
+        alert('Les notes doivent être entre 0 et 20.');
+        return;
+      }
+
+      if (etudiants.length >= 100) {
+    alert('Tu as déjà ajouté 100 étudiants.');
+    return;
+}
+
+      const moyenne = (note1 + note2 + note3) / 3;
+      const mention = calculMention(moyenne);
+
+      etudiants.push({
+        nom: nom,
+        notes: [note1, note2, note3],
+        moyenne: moyenne,
+        mention: mention
+      });
+
+      afficherEtudiants();
+      afficherAdmis();
+      viderInputs();
+      nomInput.focus();
+    }
+
+    function afficherEtudiants() {
+      tableBody.innerHTML = '';
+
+      for (let i = 0; i < etudiants.length; i++) {
+        const e = etudiants[i];
+        const row = `
+          <tr>
+            <td>${e.nom}</td>
+            <td>${e.notes[0].toFixed(2)}</td>
+            <td>${e.notes[1].toFixed(2)}</td>
+            <td>${e.notes[2].toFixed(2)}</td>
+            <td>${e.moyenne.toFixed(2)}</td>
+            <td>${e.mention}</td>
+          </tr>
+        `;
+        tableBody.innerHTML += row;
+      }
+    }
+
+    function afficherAdmis() {
+      admisDiv.innerHTML = '';
+      const admis = etudiants.filter(e => e.moyenne >= 10);
+
+      if (admis.length === 0) {
+        admisDiv.innerHTML = '<p class="danger">Aucun étudiant admis.</p>';
+        return;
+      }
+
+      let html = '<ul>';
+      for (let i = 0; i < admis.length; i++) {
+        html += `<li class="success">${admis[i].nom} - ${admis[i].moyenne.toFixed(2)}</li>`;
+      }
+      html += '</ul>';
+      admisDiv.innerHTML = html;
+    }
+
+    function viderInputs() {
+      nomInput.value = '';
+      note1Input.value = '';
+      note2Input.value = '';
+      note3Input.value = '';
+    }
+
+    function viderTout() {
+      etudiants = [];
+      tableBody.innerHTML = '';
+      admisDiv.innerHTML = '';
+      viderInputs();
+      nomInput.focus();
+    }
+
+    addBtn.addEventListener('click', ajouterEtudiant);
+    clearBtn.addEventListener('click', viderTout);
+
+    nomInput.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        note1Input.focus();
+      }
+    });
+
+    note1Input.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        note2Input.focus();
+      }
+    });
+
+    note2Input.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        note3Input.focus();
+      }
+    });
+
+    note3Input.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        ajouterEtudiant();
+      }
+    });
+
+    nomInput.focus();
+  </script>
+</body>
+</html>
